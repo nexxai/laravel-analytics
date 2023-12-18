@@ -1,17 +1,22 @@
 {
-  "name": "wdev-rs/laravel-analytics",
-  "description": "Collect page view data in your application without third party tracking",
+  "name": "nexxai/laravel-analytics",
+  "description": "Collect anonymized page view data in your application without third party tracking",
   "keywords": [
-    "wdev-rs",
+    "nexxai",
     "laravel-analytics"
   ],
-  "homepage": "https://github.com/wdev-rs/laravel-analytics",
+  "homepage": "https://github.com/nexxai/laravel-analytics",
   "license": "MIT",
   "type": "library",
   "authors": [
     {
       "name": "Daniel Werner",
       "email": "daniel@wdev.rs",
+      "role": "Developer"
+    },
+    {
+      "name": "JT Smith",
+      "email": "nexxai@gmail.com",
       "role": "Developer"
     }
   ],
