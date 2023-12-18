@@ -1,13 +1,11 @@
 <?php
 
-namespace WdevRs\LaravelAnalytics\Http\Controllers;
+namespace Nexxai\LaravelAnalytics\Http\Controllers;
 
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Carbon;
-use WdevRs\LaravelAnalytics\Repositories\PageViewRepository;
-use WdevRs\LaravelAnalytics\Tests\PageViewRepositoryTest;
+use Nexxai\LaravelAnalytics\Repositories\PageViewRepository;
 
 class AnalyticsController extends Controller
 {

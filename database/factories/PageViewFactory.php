@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use WdevRs\LaravelAnalytics\Models\PageView;
+use Nexxai\LaravelAnalytics\Models\PageView;
 
 class PageViewFactory extends Factory
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace WdevRs\LaravelAnalytics;
+namespace Nexxai\LaravelAnalytics;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -16,8 +16,8 @@ class LaravelAnalyticsServiceProvider extends ServiceProvider
          */
         // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'laravel-analytics');
         // $this->loadViewsFrom(__DIR__.'/../resources/views', 'laravel-analytics');
-         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-//         $this->loadRoutesFrom(__DIR__.'/routes.php');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        //         $this->loadRoutesFrom(__DIR__.'/routes.php');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([

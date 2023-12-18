@@ -32,12 +32,12 @@
   },
   "autoload": {
     "psr-4": {
-      "WdevRs\\LaravelAnalytics\\": "src"
+      "Nexxai\\LaravelAnalytics\\": "src"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "WdevRs\\LaravelAnalytics\\Tests\\": "tests",
+      "Nexxai\\LaravelAnalytics\\Tests\\": "tests",
       "Database\\Factories\\": "database/factories/",
       "Database\\Seeders\\": "database/seeders/"
     }
@@ -55,7 +55,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "WdevRs\\LaravelAnalytics\\LaravelAnalyticsServiceProvider"
+        "Nexxai\\LaravelAnalytics\\LaravelAnalyticsServiceProvider"
       ],
       "aliases": {}
     }

@@ -1,14 +1,13 @@
 <?php
 
-uses(\WdevRs\LaravelAnalytics\Tests\TestCase::class);
+uses(\Nexxai\LaravelAnalytics\Tests\TestCase::class);
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Route;
-use WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
-use WdevRs\LaravelAnalytics\LaravelAnalyticsServiceProvider;
-use WdevRs\LaravelAnalytics\Models\PageView;
-
+use Nexxai\LaravelAnalytics\Http\Middleware\Analytics;
+use Nexxai\LaravelAnalytics\LaravelAnalyticsServiceProvider;
+use Nexxai\LaravelAnalytics\Models\PageView;
 
 beforeEach(function () {
     Process::fake([
@@ -18,7 +17,7 @@ beforeEach(function () {
     ]);
 });
 
-function getPackageProviders($app) : array
+function getPackageProviders($app): array
 {
     return [LaravelAnalyticsServiceProvider::class];
 }
@@ -137,7 +136,7 @@ test('saves country with proxy', function () {
 });
 
 test('can get c i d r', function () {
-    $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
+    $analytics = new \Nexxai\LaravelAnalytics\Http\Middleware\Analytics;
 
     $cidr = $analytics->getCidr('162.158.166.31');
 
@@ -145,7 +144,7 @@ test('can get c i d r', function () {
 });
 
 test('can whois an i p', function () {
-    $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
+    $analytics = new \Nexxai\LaravelAnalytics\Http\Middleware\Analytics;
 
     $lookup = $analytics->ipWhois('162.158.166.31');
 
@@ -153,7 +152,7 @@ test('can whois an i p', function () {
 });
 
 test('can get country from i p', function () {
-    $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
+    $analytics = new \Nexxai\LaravelAnalytics\Http\Middleware\Analytics;
 
     $lookup = $analytics->getCountry('162.158.166.31');
 
@@ -163,7 +162,7 @@ test('can get country from i p', function () {
 test('if country is unknown', function () {
     fakeProcessLocal();
 
-    $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
+    $analytics = new \Nexxai\LaravelAnalytics\Http\Middleware\Analytics;
 
     $lookup = $analytics->getCountry('10.0.0.1');
 
@@ -173,7 +172,7 @@ test('if country is unknown', function () {
 test('if i p is unknown', function () {
     fakeProcessLocal();
 
-    $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
+    $analytics = new \Nexxai\LaravelAnalytics\Http\Middleware\Analytics;
 
     $lookup = $analytics->getCidr('10.0.0.1');
 

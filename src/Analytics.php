@@ -1,11 +1,11 @@
 <?php
 
-namespace WdevRs\LaravelAnalytics;
+namespace Nexxai\LaravelAnalytics;
 
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \WdevRs\LaravelAnalytics\LaravelAnalytics
+ * @see \Nexxai\LaravelAnalytics\LaravelAnalytics
  */
 class Analytics extends Facade
 {

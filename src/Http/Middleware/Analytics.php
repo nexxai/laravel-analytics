@@ -1,14 +1,14 @@
 <?php
 
-namespace WdevRs\LaravelAnalytics\Http\Middleware;
+namespace Nexxai\LaravelAnalytics\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Jaybizzle\CrawlerDetect\CrawlerDetect;
+use Nexxai\LaravelAnalytics\Models\PageView;
 use Throwable;
-use WdevRs\LaravelAnalytics\Models\PageView;
 
 class Analytics
 {

@@ -1,9 +1,9 @@
 <?php
 
-namespace WdevRs\LaravelAnalytics;
+namespace Nexxai\LaravelAnalytics;
 
 use Illuminate\Support\Facades\Route;
-use WdevRs\LaravelAnalytics\Http\Controllers\AnalyticsController;
+use Nexxai\LaravelAnalytics\Http\Controllers\AnalyticsController;
 
 class LaravelAnalytics
 {

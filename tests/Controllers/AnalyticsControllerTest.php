@@ -1,23 +1,22 @@
 <?php
 
-uses(\WdevRs\LaravelAnalytics\Tests\TestCase::class);
-use Mockery\Mock;
+uses(\Nexxai\LaravelAnalytics\Tests\TestCase::class);
 use Mockery\MockInterface;
-use WdevRs\LaravelAnalytics\LaravelAnalytics;
-use WdevRs\LaravelAnalytics\Repositories\PageViewRepository;
+use Nexxai\LaravelAnalytics\LaravelAnalytics;
+use Nexxai\LaravelAnalytics\Repositories\PageViewRepository;
 
 beforeEach(function () {
     LaravelAnalytics::routes();
 });
 
 test('it can get page views per day', function () {
-    $this->mock(PageViewRepository::class, function (MockInterface $mock){
-       $mock->shouldReceive('getByDateGroupedByDays')->andReturn(
-           collect([
-               '2023-03-28' => 2,
-               '2023-03-29' => 5
+    $this->mock(PageViewRepository::class, function (MockInterface $mock) {
+        $mock->shouldReceive('getByDateGroupedByDays')->andReturn(
+            collect([
+                '2023-03-28' => 2,
+                '2023-03-29' => 5,
             ])
-       );
+        );
     });
 
     $response = $this->getJson('analytics/page-views-per-days')->assertOk();
@@ -27,11 +26,11 @@ test('it can get page views per day', function () {
 });
 
 test('it can get page views per paths', function () {
-    $this->mock(PageViewRepository::class, function (MockInterface $mock){
+    $this->mock(PageViewRepository::class, function (MockInterface $mock) {
         $mock->shouldReceive('getByDateGroupedByPath')->andReturn(
             collect([
                 'test/1' => 2,
-                'test/2' => 5
+                'test/2' => 5,
             ])
         );
     });

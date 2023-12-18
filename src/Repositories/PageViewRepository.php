@@ -1,26 +1,25 @@
 <?php
 
-namespace WdevRs\LaravelAnalytics\Repositories;
+namespace Nexxai\LaravelAnalytics\Repositories;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use WdevRs\LaravelAnalytics\Models\PageView;
+use Nexxai\LaravelAnalytics\Models\PageView;
 
 class PageViewRepository
 {
-
     public function getByDate(Carbon $date): Collection
     {
         return PageView::query()
-                    ->where('created_at', '>=', $date)
-                    ->get();
+            ->where('created_at', '>=', $date)
+            ->get();
     }
 
     public function getByDateGroupedByPath(Carbon $date): Collection
     {
         return PageView::query()
-            ->selectRaw('COUNT(id) as count, path' )
+            ->selectRaw('COUNT(id) as count, path')
             ->where('created_at', '>=', $date)
             ->groupBy('path')
             ->orderByDesc('count')
@@ -31,7 +30,7 @@ class PageViewRepository
     public function getByDateGroupedByDays(Carbon $date): Collection
     {
         return PageView::query()
-            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(id) as count') )
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(id) as count'))
             ->where('created_at', '>=', $date)
             ->groupBy('date')
             ->orderBy('date')
@@ -41,12 +40,10 @@ class PageViewRepository
     public function getVisitorsByDateGroupedByDays(Carbon $date): Collection
     {
         return PageView::query()
-            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(DISTINCT session_id) as count') )
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(DISTINCT session_id) as count'))
             ->where('created_at', '>=', $date)
-            ->groupBy( 'date')
+            ->groupBy('date')
             ->orderBy('date')
             ->pluck('count', 'date');
     }
-
-
 }

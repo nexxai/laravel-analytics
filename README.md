@@ -1,8 +1,8 @@
 # Very short description of the package
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/wdev-rs/laravel-analytics.svg?style=flat-square)](https://packagist.org/packages/wdev-rs/laravel-analytics)
-[![Total Downloads](https://img.shields.io/packagist/dt/wdev-rs/laravel-analytics.svg?style=flat-square)](https://packagist.org/packages/wdev-rs/laravel-analytics)
-![GitHub Actions](https://github.com/wdev-rs/laravel-analytics/actions/workflows/main.yml/badge.svg)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/nexxai/laravel-analytics.svg?style=flat-square)](https://packagist.org/packages/nexxai/laravel-analytics)
+[![Total Downloads](https://img.shields.io/packagist/dt/nexxai/laravel-analytics.svg?style=flat-square)](https://packagist.org/packages/nexxai/laravel-analytics)
+![GitHub Actions](https://github.com/nexxai/laravel-analytics/actions/workflows/main.yml/badge.svg)
 
 This is where your description should go. Try and limit it to a paragraph or two, and maybe throw in a mention of what PSRs you support to avoid any confusion with users and contributors.
 
@@ -11,7 +11,7 @@ This is where your description should go. Try and limit it to a paragraph or two
 You can install the package via composer:
 
 ```bash
-composer require wdev-rs/laravel-analytics
+composer require nexxai/laravel-analytics
 ```
 
 Install the vue-chartjs integration
@@ -23,7 +23,7 @@ npm install vue-chartjs@^4.0.0 chart.js
 Publish the vendor files by running
 
 ```bash
-php artisan vendor:publish --provider="WdevRs\LaravelAnalytics\LaravelAnalyticsServiceProvider"
+php artisan vendor:publish --provider="Nexxai\LaravelAnalytics\LaravelAnalyticsServiceProvider"
 ```
 
 ## Usage
@@ -38,7 +38,7 @@ Add alias to middleware in `app/Http/Kernel.php`
 ```php
     protected $routeMiddleware = [
         ...
-        'analytics' => \WdevRs\LaravelAnalytics\Http\Middleware\Analytics::class,
+        'analytics' => \Nexxai\LaravelAnalytics\Http\Middleware\Analytics::class,
         ...
     ];        
 ```
@@ -99,11 +99,12 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 ### Security
 
-If you discover any security related issues, please email daniel@wdev.rs instead of using the issue tracker.
+If you discover any security related issues, please email nexxai@gmail.com instead of using the issue tracker.
 
 ## Credits
 
 -   [Daniel Werner](https://github.com/wdev-rs)
+-   [JT Smith](https://github.com/nexxai)
 -   [All Contributors](../../contributors)
 
 ## License
