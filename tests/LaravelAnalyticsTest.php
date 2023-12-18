@@ -1,7 +1,6 @@
 <?php
 
-namespace WdevRs\LaravelAnalytics\Tests;
-
+uses(\WdevRs\LaravelAnalytics\Tests\TestCase::class);
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Process;
@@ -10,199 +9,182 @@ use WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
 use WdevRs\LaravelAnalytics\LaravelAnalyticsServiceProvider;
 use WdevRs\LaravelAnalytics\Models\PageView;
 
-class LaravelAnalyticsTest extends TestCase
+
+beforeEach(function () {
+    Process::fake([
+        '*' => Process::result(
+            output: file_get_contents(getcwd().'/tests/fixtures/whois.txt'),
+        ),
+    ]);
+});
+
+function getPackageProviders($app) : array
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
+    return [LaravelAnalyticsServiceProvider::class];
+}
 
-        Process::fake([
-            '*' => Process::result(
-                output: file_get_contents(getcwd().'/tests/fixtures/whois.txt'),
-            ),
-        ]);
-    }
+test('page view tracing', function () {
+    $request = Request::create('/test/path', 'GET');
 
-    protected function getPackageProviders($app): array
-    {
-        return [LaravelAnalyticsServiceProvider::class];
-    }
+    (new Analytics())->handle($request, function ($req) {
+        expect($req->path())->toEqual('test/path');
+        expect($req->method())->toEqual('GET');
+    });
 
-    public function testPageViewTracing()
-    {
-        $request = Request::create('/test/path', 'GET');
+    expect(PageView::all())->toHaveCount(1);
+    $this->assertDatabaseHas(app(PageView::class)->getTable(), [
+        'path' => 'test/path',
+    ]);
+});
 
-        (new Analytics())->handle($request, function ($req) {
-            $this->assertEquals('test/path', $req->path());
-            $this->assertEquals('GET', $req->method());
-        });
+test('page view tracing with model', function () {
+    Route::get('test/path/{pageView}', function (PageView $pageView) {
+        return 'Test path';
+    })->middleware([SubstituteBindings::class, Analytics::class]);
 
-        $this->assertCount(1, PageView::all());
-        $this->assertDatabaseHas(app(PageView::class)->getTable(), [
-            'path' => 'test/path',
-        ]);
-    }
+    $pageView = PageView::factory()->create([
+        'path' => 'tp',
+    ]);
 
-    public function testPageViewTracingWithModel()
-    {
-        Route::get('test/path/{pageView}', function (PageView $pageView) {
-            return 'Test path';
-        })->middleware([SubstituteBindings::class, Analytics::class]);
+    $this->get('test/path/'.$pageView->getKey());
 
-        $pageView = PageView::factory()->create([
-            'path' => 'tp',
-        ]);
+    expect(PageView::all())->toHaveCount(2);
+    $this->assertDatabaseHas(app(PageView::class)->getTable(), [
+        'path' => 'test/path/1',
+    ]);
+});
 
-        $this->get('test/path/'.$pageView->getKey());
+test('page view tracing with non model route param', function () {
+    Route::get('test/path/{any}', function (int $any) {
+        return 'Test path';
+    })->middleware([SubstituteBindings::class, Analytics::class]);
 
-        $this->assertCount(2, PageView::all());
-        $this->assertDatabaseHas(app(PageView::class)->getTable(), [
-            'path' => 'test/path/1',
-        ]);
-    }
+    $this->get('test/path/1');
 
-    public function testPageViewTracingWithNonModelRouteParam()
-    {
-        Route::get('test/path/{any}', function (int $any) {
-            return 'Test path';
-        })->middleware([SubstituteBindings::class, Analytics::class]);
+    expect(PageView::all())->toHaveCount(1);
+    $this->assertDatabaseHas(app(PageView::class)->getTable(), [
+        'path' => 'test/path/1',
+    ]);
+});
 
-        $this->get('test/path/1');
+test('it filters out bot traffic', function () {
+    Route::get('test/path/{any}', function (int $any) {
+        return 'Test path';
+    })->middleware([SubstituteBindings::class, Analytics::class]);
 
-        $this->assertCount(1, PageView::all());
-        $this->assertDatabaseHas(app(PageView::class)->getTable(), [
-            'path' => 'test/path/1',
-        ]);
-    }
+    $this->get('test/path/1', ['User-Agent' => 'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.5563.146 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)']);
 
-    public function testItFiltersOutBotTraffic()
-    {
-        Route::get('test/path/{any}', function (int $any) {
-            return 'Test path';
-        })->middleware([SubstituteBindings::class, Analytics::class]);
+    expect(PageView::all())->toHaveCount(0);
+    $this->assertDatabaseMissing(app(PageView::class)->getTable(), [
+        'path' => 'test/path/1',
+    ]);
+});
 
-        $this->get('test/path/1', ['User-Agent' => 'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.5563.146 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)']);
+test('saves ip without proxy', function () {
+    fakeProcessLocal();
 
-        $this->assertCount(0, PageView::all());
-        $this->assertDatabaseMissing(app(PageView::class)->getTable(), [
-            'path' => 'test/path/1',
-        ]);
-    }
+    $request = Request::create('/test/path', 'GET');
 
-    public function testSavesIpWithoutProxy()
-    {
-        $this->fakeProcessLocal();
+    $request->server->set('REMOTE_ADDR', '10.0.0.1');
 
-        $request = Request::create('/test/path', 'GET');
+    (new Analytics())->handle($request, function ($req) {
+        expect($req->path())->toEqual('test/path');
+        expect($req->method())->toEqual('GET');
+    });
 
-        $request->server->set('REMOTE_ADDR', '10.0.0.1');
+    expect(PageView::all())->toHaveCount(1);
+    $this->assertDatabaseHas(app(PageView::class)->getTable(), [
+        'cidr' => 'UNKNOWN',
+        'path' => 'test/path',
+    ]);
+});
 
-        (new Analytics())->handle($request, function ($req) {
-            $this->assertEquals('test/path', $req->path());
-            $this->assertEquals('GET', $req->method());
-        });
+test('saves ip with proxy', function () {
+    fakeProcessLocal();
 
-        $this->assertCount(1, PageView::all());
-        $this->assertDatabaseHas(app(PageView::class)->getTable(), [
-            'cidr' => 'UNKNOWN',
-            'path' => 'test/path',
-        ]);
-    }
+    $request = Request::create('/test/path', 'GET');
 
-    public function testSavesIpWithProxy()
-    {
-        $this->fakeProcessLocal();
+    $request->headers->set('X-Forwarded-For', '10.0.0.1');
 
-        $request = Request::create('/test/path', 'GET');
+    (new Analytics())->handle($request, function ($req) {
+        expect($req->path())->toEqual('test/path');
+        expect($req->method())->toEqual('GET');
+    });
 
-        $request->headers->set('X-Forwarded-For', '10.0.0.1');
+    expect(PageView::all())->toHaveCount(1);
+    $this->assertDatabaseHas(app(PageView::class)->getTable(), [
+        'cidr' => 'UNKNOWN',
+        'path' => 'test/path',
+    ]);
+});
 
-        (new Analytics())->handle($request, function ($req) {
-            $this->assertEquals('test/path', $req->path());
-            $this->assertEquals('GET', $req->method());
-        });
+test('saves country with proxy', function () {
+    $request = Request::create('/test/path', 'GET');
 
-        $this->assertCount(1, PageView::all());
-        $this->assertDatabaseHas(app(PageView::class)->getTable(), [
-            'cidr' => 'UNKNOWN',
-            'path' => 'test/path',
-        ]);
-    }
+    $request->server->set('REMOTE_ADDR', '162.158.166.31');
 
-    public function testSavesCountryWithProxy()
-    {
-        $request = Request::create('/test/path', 'GET');
+    (new Analytics())->handle($request, function ($req) {
+        expect($req->path())->toEqual('test/path');
+        expect($req->method())->toEqual('GET');
+    });
 
-        $request->server->set('REMOTE_ADDR', '162.158.166.31');
+    expect(PageView::all())->toHaveCount(1);
 
-        (new Analytics())->handle($request, function ($req) {
-            $this->assertEquals('test/path', $req->path());
-            $this->assertEquals('GET', $req->method());
-        });
+    $this->assertDatabaseHas(app(PageView::class)->getTable(), [
+        'cidr' => '162.158.0.0/15',
+        'country' => 'US',
+    ]);
+});
 
-        $this->assertCount(1, PageView::all());
+test('can get c i d r', function () {
+    $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
 
-        $this->assertDatabaseHas(app(PageView::class)->getTable(), [
-            'cidr' => '162.158.0.0/15',
-            'country' => 'US',
-        ]);
-    }
+    $cidr = $analytics->getCidr('162.158.166.31');
 
-    public function testCanGetCIDR()
-    {
-        $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
+    expect($cidr)->toEqual('162.158.0.0/15');
+});
 
-        $cidr = $analytics->getCidr('162.158.166.31');
+test('can whois an i p', function () {
+    $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
 
-        $this->assertEquals('162.158.0.0/15', $cidr);
-    }
+    $lookup = $analytics->ipWhois('162.158.166.31');
 
-    public function testCanWhoisAnIP()
-    {
-        $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
+    expect($lookup)->toContain('NetName:        CLOUDFLARENET');
+});
 
-        $lookup = $analytics->ipWhois('162.158.166.31');
+test('can get country from i p', function () {
+    $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
 
-        $this->assertContains('NetName:        CLOUDFLARENET', $lookup);
-    }
+    $lookup = $analytics->getCountry('162.158.166.31');
 
-    public function testCanGetCountryFromIP()
-    {
-        $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
+    expect($lookup)->toEqual('US');
+});
 
-        $lookup = $analytics->getCountry('162.158.166.31');
+test('if country is unknown', function () {
+    fakeProcessLocal();
 
-        $this->assertEquals('US', $lookup);
-    }
+    $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
 
-    public function testIfCountryIsUnknown()
-    {
-        $this->fakeProcessLocal();
+    $lookup = $analytics->getCountry('10.0.0.1');
 
-        $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
+    expect($lookup)->toEqual('UNKNOWN');
+});
 
-        $lookup = $analytics->getCountry('10.0.0.1');
+test('if i p is unknown', function () {
+    fakeProcessLocal();
 
-        $this->assertEquals('UNKNOWN', $lookup);
-    }
+    $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
 
-    public function testIfIPIsUnknown()
-    {
-        $this->fakeProcessLocal();
+    $lookup = $analytics->getCidr('10.0.0.1');
 
-        $analytics = new \WdevRs\LaravelAnalytics\Http\Middleware\Analytics;
+    expect($lookup)->toEqual('UNKNOWN');
+});
 
-        $lookup = $analytics->getCidr('10.0.0.1');
-
-        $this->assertEquals('UNKNOWN', $lookup);
-    }
-
-    public function fakeProcessLocal()
-    {
-        Process::fake([
-            '*' => Process::result(
-                output: file_get_contents(getcwd().'/tests/fixtures/localWhois.txt'),
-            ),
-        ]);
-    }
+function fakeProcessLocal()
+{
+    Process::fake([
+        '*' => Process::result(
+            output: file_get_contents(getcwd().'/tests/fixtures/localWhois.txt'),
+        ),
+    ]);
 }

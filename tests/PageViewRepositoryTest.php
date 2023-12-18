@@ -1,123 +1,116 @@
 <?php
 
-namespace WdevRs\LaravelAnalytics\Tests;
-
+uses(\WdevRs\LaravelAnalytics\Tests\TestCase::class);
 use Illuminate\Support\Carbon;
 use WdevRs\LaravelAnalytics\Models\PageView;
 use WdevRs\LaravelAnalytics\Repositories\PageViewRepository;
 
-class PageViewRepositoryTest extends TestCase
-{
-    public function testItCanGetPageViewDataByDate()
-    {
-        $pageViewRepository =  app(PageViewRepository::class);
 
-        $this->assertNotNull($pageViewRepository);
+test('it can get page view data by date', function () {
+    $pageViewRepository =  app(PageViewRepository::class);
 
-        PageView::factory()->count(10)->create(
-            [
-                'created_at' => Carbon::today()->subWeeks(3)
-            ]
-        );
+    expect($pageViewRepository)->not->toBeNull();
 
-        PageView::factory()->count(10)->create(
-            [
-                'created_at' => Carbon::today()->subWeeks(5)
-            ]
-        );
+    PageView::factory()->count(10)->create(
+        [
+            'created_at' => Carbon::today()->subWeeks(3)
+        ]
+    );
 
-        $analyticsData = $pageViewRepository->getByDate(Carbon::today()->subWeeks(4));
+    PageView::factory()->count(10)->create(
+        [
+            'created_at' => Carbon::today()->subWeeks(5)
+        ]
+    );
 
-        $this->assertCount(10, $analyticsData);
-    }
+    $analyticsData = $pageViewRepository->getByDate(Carbon::today()->subWeeks(4));
 
-    public function testItCanGetPageViewDataByDateGrouppedByPath()
-    {
-        $pageViewRepository =  app(PageViewRepository::class);
+    expect($analyticsData)->toHaveCount(10);
+});
 
-        $this->assertNotNull($pageViewRepository);
+test('it can get page view data by date groupped by path', function () {
+    $pageViewRepository =  app(PageViewRepository::class);
 
-        PageView::factory()->count(10)->create(
-            [
-                'path' => 'test/1',
-                'created_at' => Carbon::today()->subWeeks(3)
-            ]
-        );
+    expect($pageViewRepository)->not->toBeNull();
 
-        PageView::factory()->count(5)->create(
-            [
-                'path' => 'test/2',
-                'created_at' => Carbon::today()->subWeeks(3)
-            ]
-        );
+    PageView::factory()->count(10)->create(
+        [
+            'path' => 'test/1',
+            'created_at' => Carbon::today()->subWeeks(3)
+        ]
+    );
 
-        $analyticsData = $pageViewRepository->getByDateGroupedByPath(Carbon::today()->subWeeks(4));
-        $this->assertCount(2, $analyticsData);
-        $this->assertEquals(10, $analyticsData['test/1']);
-        $this->assertEquals(5, $analyticsData['test/2']);
-    }
+    PageView::factory()->count(5)->create(
+        [
+            'path' => 'test/2',
+            'created_at' => Carbon::today()->subWeeks(3)
+        ]
+    );
 
-    public function testItCanGetPageViewDataByDateGrouppedByDays()
-    {
-        $pageViewRepository =  app(PageViewRepository::class);
+    $analyticsData = $pageViewRepository->getByDateGroupedByPath(Carbon::today()->subWeeks(4));
+    expect($analyticsData)->toHaveCount(2);
+    expect($analyticsData['test/1'])->toEqual(10);
+    expect($analyticsData['test/2'])->toEqual(5);
+});
 
-        $this->assertNotNull($pageViewRepository);
+test('it can get page view data by date groupped by days', function () {
+    $pageViewRepository =  app(PageViewRepository::class);
 
-        PageView::factory()->count(10)->create(
-            [
-                'path' => 'test/1',
-                'created_at' => Carbon::today()->subDays(1)
-            ]
-        );
+    expect($pageViewRepository)->not->toBeNull();
 
-        PageView::factory()->count(5)->create(
-            [
-                'path' => 'test/1',
-                'created_at' => Carbon::today()->subDays(2)
-            ]
-        );
+    PageView::factory()->count(10)->create(
+        [
+            'path' => 'test/1',
+            'created_at' => Carbon::today()->subDays(1)
+        ]
+    );
 
-        $analyticsData = $pageViewRepository->getByDateGroupedByDays(Carbon::today()->subWeeks(4));
+    PageView::factory()->count(5)->create(
+        [
+            'path' => 'test/1',
+            'created_at' => Carbon::today()->subDays(2)
+        ]
+    );
 
-        $this->assertCount(2, $analyticsData);
-        $this->assertEquals(10, $analyticsData[Carbon::today()->subDays(1)->toDateString()]);
-        $this->assertEquals(5, $analyticsData[Carbon::today()->subDays(2)->toDateString()]);
-    }
+    $analyticsData = $pageViewRepository->getByDateGroupedByDays(Carbon::today()->subWeeks(4));
 
-    public function testItCanGetVisitorsByDateGrouppedByDays()
-    {
-        /** @var PageViewRepository $pageViewRepository */
-        $pageViewRepository =  app(PageViewRepository::class);
+    expect($analyticsData)->toHaveCount(2);
+    expect($analyticsData[Carbon::today()->subDays(1)->toDateString()])->toEqual(10);
+    expect($analyticsData[Carbon::today()->subDays(2)->toDateString()])->toEqual(5);
+});
 
-        $this->assertNotNull($pageViewRepository);
+test('it can get visitors by date groupped by days', function () {
+    /** @var PageViewRepository $pageViewRepository */
+    $pageViewRepository =  app(PageViewRepository::class);
 
-        PageView::factory()->count(10)->create(
-            [
-                'session_id' => 'session1',
-                'path' => 'test/1',
-                'created_at' => Carbon::today()->subDays(1)
-            ]
-        );
+    expect($pageViewRepository)->not->toBeNull();
 
-        PageView::factory()->count(5)->create(
-            [
-                'session_id' => 'session2',
-                'path' => 'test/1',
-                'created_at' => Carbon::today()->subDays(2)
-            ]
-        );
+    PageView::factory()->count(10)->create(
+        [
+            'session_id' => 'session1',
+            'path' => 'test/1',
+            'created_at' => Carbon::today()->subDays(1)
+        ]
+    );
 
-        PageView::factory()->count(5)->create(
-            [
-                'session_id' => 'session3',
-                'path' => 'test/4',
-                'created_at' => Carbon::today()->subDays(2)
-            ]
-        );
+    PageView::factory()->count(5)->create(
+        [
+            'session_id' => 'session2',
+            'path' => 'test/1',
+            'created_at' => Carbon::today()->subDays(2)
+        ]
+    );
 
-        $analyticsData = $pageViewRepository->getVisitorsByDateGroupedByDays(Carbon::today()->subWeeks(4));
-        $this->assertCount(2, $analyticsData);
-        $this->assertEquals(1, $analyticsData[Carbon::today()->subDays(1)->toDateString()]);
-        $this->assertEquals(2, $analyticsData[Carbon::today()->subDays(2)->toDateString()]);
-    }
-}
+    PageView::factory()->count(5)->create(
+        [
+            'session_id' => 'session3',
+            'path' => 'test/4',
+            'created_at' => Carbon::today()->subDays(2)
+        ]
+    );
+
+    $analyticsData = $pageViewRepository->getVisitorsByDateGroupedByDays(Carbon::today()->subWeeks(4));
+    expect($analyticsData)->toHaveCount(2);
+    expect($analyticsData[Carbon::today()->subDays(1)->toDateString()])->toEqual(1);
+    expect($analyticsData[Carbon::today()->subDays(2)->toDateString()])->toEqual(2);
+});
