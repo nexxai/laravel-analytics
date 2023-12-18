@@ -23,7 +23,8 @@ class PageViewFactory extends Factory
     {
         return [
             'session_id' => $this->faker->word,
-            'path' => $this->faker->url
+            'path' => $this->faker->url,
+            'cidr' => '127.0.0.1/8',
         ];
     }
 }

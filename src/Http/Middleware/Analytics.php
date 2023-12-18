@@ -2,9 +2,9 @@
 
 namespace WdevRs\LaravelAnalytics\Http\Middleware;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Jaybizzle\CrawlerDetect\CrawlerDetect;
 use Throwable;
@@ -17,7 +17,7 @@ class Analytics
         $response = $next($request);
 
         try {
-            if (!$request->isMethod('GET')) {
+            if (! $request->isMethod('GET')) {
                 return $response;
             }
 
@@ -38,24 +38,23 @@ class Analytics
                 return $response;
             }
 
+            $ip = $request->headers->get('X-Forwarded-For') ? $request->headers->get('X-Forwarded-For') : $request->ip();
+
             /** @var PageView $pageView */
             $pageView = PageView::make([
                 'session_id' => session()->getId(),
                 'path' => $request->path(),
                 'user_agent' => Str::substr($userAgent, 0, 255),
-                'ip' => $request->headers->get('X-Forwarded-For') ? $request->headers->get('X-Forwarded-For') : $request->ip(),
+                'cidr' => $this->getCidr($ip),
                 'referer' => $request->headers->get('referer'),
+                'country' => $this->getCountry($ip),
             ]);
 
             $parameters = $request->route()?->parameters();
             $model = null;
 
-            if (!is_null($parameters)) {
+            if (! is_null($parameters)) {
                 $model = reset($parameters);
-            }
-
-            if (is_a($model, Model::class)) {
-                $pageView->pageModel()->associate($model);
             }
 
             $pageView->save();
@@ -63,7 +62,43 @@ class Analytics
             return $response;
         } catch (Throwable $e) {
             report($e);
+
             return $response;
         }
+    }
+
+    public function getCidr(string $ip)
+    {
+        $whois = $this->ipWhois($ip);
+
+        foreach ($whois as $line) {
+            if (str($line)->startsWith('CIDR:')) {
+                return str($line)->after('CIDR:')->trim();
+            }
+        }
+
+        return 'UNKNOWN';
+    }
+
+    public function getCountry(string $ip)
+    {
+        $whois = $this->ipWhois($ip);
+
+        foreach ($whois as $line) {
+            if (str($line)->startsWith('Country:')) {
+                return str($line)->after('Country:')->trim();
+            }
+        }
+
+        return 'UNKNOWN';
+    }
+
+    public function ipWhois(string $ip)
+    {
+        $response = Process::run("whois {$ip}");
+
+        $lines = explode("\n", $response->output()) ?? null;
+
+        return $lines;
     }
 }
